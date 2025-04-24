@@ -1,0 +1,156 @@
+# 🧾 Complete IDOR (Insecure Direct Object Reference) Checklist
+
+---
+
+## 🧭 **PHASE 1: RECONNAISSANCE**
+
+### 🔹 1.1 Identify Potential IDOR Targets
+Look for any references to internal objects or resources:
+
+- [ ] URLs with IDs or object references:
+  ```
+  /user/123
+  /invoice/456
+  /profile?id=789
+  ```
+- [ ] Form fields or hidden inputs (e.g., user_id, account_id)
+- [ ] API endpoints using IDs in paths or query params
+- [ ] Mobile apps or JavaScript-heavy apps (use Burp proxy)
+- [ ] File download/view endpoints (e.g., `GET /files/receipt123.pdf`)
+- [ ] Email or phone number usage (e.g., `GET /user?email=user@example.com`)
+- [ ] UUIDs, slugs, or usernames as identifiers
+
+---
+
+## 🔬 **PHASE 2: INITIAL TESTING**
+
+### 🔹 2.1 Manual ID Fuzzing
+- [ ] Change ID to another valid one (e.g., `123 → 124`)
+- [ ] Try accessing another user’s:
+  - Profile
+  - Orders
+  - Messages
+  - Files
+  - Tickets
+  - Account settings
+
+### 🔹 2.2 Observe Response Behavior
+- [ ] Do you get the other user's data?
+- [ ] Do you get an error (403, 401, 404)?
+- [ ] Do you get redirected or logged out?
+- [ ] Does nothing happen (silent failure)?
+
+---
+
+## 🔧 **PHASE 3: AUTOMATED TESTING**
+
+### 🔹 3.1 Use Burp Suite Repeater
+- [ ] Send request to Repeater and modify ID
+- [ ] Compare response lengths, content, and status codes
+
+### 🔹 3.2 Use Burp Suite Intruder (for ID enumeration)
+- [ ] Set payload positions (e.g., `/invoice/§123§`)
+- [ ] Use numeric payload list or `Sniper` attack
+- [ ] Monitor for different responses (especially `200 OK`)
+
+### 🔹 3.3 Use Authorize Plugin (Burp extension)
+- [ ] Record baseline requests while authenticated as user A
+- [ ] Replay same requests as user B (or unauthenticated)
+- [ ] Identify unauthorized access (color-coded diffs)
+
+---
+
+## 🧑‍💻 **PHASE 4: AUTHORIZATION CONTEXT SWITCHING**
+
+### 🔹 4.1 Test as Multiple Roles:
+- [ ] Admin → Regular user
+- [ ] Regular user → Another user
+- [ ] Unauthenticated → Authenticated
+
+### 🔹 4.2 Session Token Reuse
+- [ ] Try sending request with no `Authorization` header
+- [ ] Try replacing session tokens with other users’ tokens
+- [ ] Check if object access is token-bound
+
+---
+
+## 🎯 **PHASE 5: TARGET-SPECIFIC IDOR VARIANTS**
+
+### 🔹 5.1 Vertical & Horizontal Privilege Escalation
+- [ ] Can user escalate to admin?
+- [ ] Can user act on behalf of another user?
+
+### 🔹 5.2 Mass Assignment IDOR
+- [ ] Try sending extra parameters in JSON or form data:
+  ```json
+  {
+    "email": "test@evil.com",
+    "role": "admin"
+  }
+  ```
+- [ ] Try modifying sensitive fields (`is_admin`, `user_id`)
+
+### 🔹 5.3 IDOR on File Access
+- [ ] Test file download links:
+  ```
+  /download?file=report_001.pdf → report_002.pdf
+  /files/user_1_photo.jpg → user_2_photo.jpg
+  ```
+
+### 🔹 5.4 API-specific IDOR
+- [ ] Try endpoints like:
+  ```
+  GET /api/users/123
+  PUT /api/profile/123
+  DELETE /api/messages/456
+  ```
+- [ ] Modify user_id or resource_id in API JSON body
+
+---
+
+## 🛠️ **PHASE 6: POST-EXPLOITATION / REPORTING**
+
+### 🔹 6.1 Document Impact
+- [ ] What data was accessed (PII, credentials, payment)?
+- [ ] What level of account was affected?
+- [ ] Is there lateral movement or privilege escalation?
+
+### 🔹 6.2 Take Screenshots or Burp Exports
+- [ ] Response with unauthorized data
+- [ ] Before & after request comparison
+- [ ] Mark headers and tokens used
+
+---
+
+## 🛡️ **PHASE 7: PREVENTION & REMEDIATION CHECKLIST**
+
+| Defense Technique                  | Applied? ✅ |
+|-----------------------------------|------------|
+| Use server-side authorization checks on every request | ✅ |
+| Do **not** rely solely on client-side checks         | ✅ |
+| Bind sessions to user-specific access scopes         | ✅ |
+| Avoid exposing direct object IDs (use indirect references or mappings) | ✅ |
+| Implement Role-Based Access Control (RBAC)           | ✅ |
+| Use UUIDs if needed, but still enforce permissions   | ✅ |
+| Audit logs for abnormal ID usage                     | ✅ |
+
+---
+
+## 🧰 Recommended Tools for IDOR Testing
+
+| Tool         | Purpose                        |
+|--------------|--------------------------------|
+| **Burp Suite**  | Manual & semi-automated testing |
+| **Autorize**    | Role-based access testing     |
+| **Postman**     | API manipulation              |
+| **ffuf**, **dirsearch** | Resource enumeration  |
+| **ZAP**, **Nikto** | Basic scanning             |
+
+---
+
+## 📁 Bonus: Real-World Examples
+
+- 🟢 Accessing `/api/users/2` as user 1 reveals email and phone
+- 🟢 Downloading someone else's PDF invoice by guessing filename
+- 🟢 Changing `order_id` in a POST request shows another user’s data
+
