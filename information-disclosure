@@ -1,0 +1,87 @@
+### **🔐 Information Disclosure Vulnerability Checklist**
+
+---
+
+## **1. Server Configuration and HTTP Headers**
+
+| **Field/Area**                            | **Test/Check**                                        | **Description**                                                                                                                                                           |
+|-------------------------------------------|------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **HTTP Response Headers**                 | `X-Content-Type-Options`                            | Ensure this header is set to `nosniff` to prevent browsers from interpreting files as a different MIME type.                                                              |
+|                                           | `X-XSS-Protection`                                  | Ensure this header is set to `1; mode=block` to enable cross-site scripting (XSS) protection.                                                                             |
+|                                           | `Strict-Transport-Security (HSTS)`                  | Ensure this header is set to force secure connections to the server. Example: `Strict-Transport-Security: max-age=31536000; includeSubDomains`.                         |
+|                                           | `X-Frame-Options`                                   | Ensure this header is set to `DENY` or `SAMEORIGIN` to prevent clickjacking attacks.                                                                                       |
+|                                           | `Content-Security-Policy (CSP)`                     | Ensure this header restricts the sources of scripts, styles, and other resources.                                                                                         |
+| **Verbose Error Messages**                | Enable or Disable Error Messages                     | Ensure that detailed error messages (stack traces, database errors, etc.) are disabled in production to prevent attackers from gaining insights into your system.         |
+| **Server Software Disclosure**            | Check for Server Banner                              | Ensure that the server banner is not revealing unnecessary information (e.g., Apache/2.4.1 or PHP/5.6). This can be done via HTTP headers or the `/server-status` page. |
+| **Version Disclosure**                     | Disable version disclosure                          | Ensure that the server or application does not expose the version number in HTTP headers, filenames, or error messages.                                                   |
+
+---
+
+## **2. Source Code and Files Exposure**
+
+| **Field/Area**                            | **Test/Check**                                        | **Description**                                                                                                                                                           |
+|-------------------------------------------|------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Source Code Exposure**                  | Check for publicly accessible source code            | Ensure that source code files (PHP, Python, JavaScript, etc.) are not exposed to the public. Files should not be accessible via URL (e.g., `http://example.com/index.php`). |
+| **File Extensions**                       | Check for exposure of sensitive file extensions      | Ensure that sensitive file extensions (like `.bak`, `.bak~`, `.old`, `.swp`, `.log`) are not accessible.                                                                 |
+| **Sensitive Files Exposure**              | Look for exposed config files (e.g., `.env`, `config.php`, `.git`) | Ensure configuration files (which may contain database credentials, API keys, etc.) are not accessible publicly.                                                           |
+| **Backup Files Exposure**                 | Check for exposed backup files (e.g., `.bak`, `.zip`, `.tar.gz`) | Ensure backup or archive files are not accessible via URL.                                                                                                               |
+| **Unwanted Directory Listings**           | Check for directory listing enabled                  | Ensure directory listing is disabled on web servers to avoid exposing file structures (can be prevented using `.htaccess`, Nginx configurations).                          |
+
+---
+
+## **3. URL and Parameter Analysis**
+
+| **Field/Area**                            | **Test/Check**                                        | **Description**                                                                                                                                                           |
+|-------------------------------------------|------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Directory Traversal (LFI)**             | Check for path traversal vulnerabilities               | Test URLs like `/../../../etc/passwd` to see if an attacker can access files outside the intended directory.                                                               |
+| **Sensitive Information in URL Parameters** | Check for sensitive data exposure in URL parameters  | Ensure no sensitive information (e.g., API keys, session IDs, passwords) is passed in URLs (e.g., `http://example.com/?api_key=12345`).                                  |
+| **Query Strings Disclosure**              | Test for visible query parameters in URLs             | Ensure that query parameters do not disclose sensitive information like user credentials, database names, etc.                                                             |
+| **Unencrypted Information in URL**       | Test for sensitive data transmitted via HTTP GET      | Ensure that sensitive data is transmitted over secure protocols (`HTTPS`), not exposed in GET request URLs.                                                                |
+
+---
+
+## **4. Response Body and Output**
+
+| **Field/Area**                            | **Test/Check**                                        | **Description**                                                                                                                                                           |
+|-------------------------------------------|------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Sensitive Data in Response Body**       | Check for sensitive data exposure in response body    | Ensure no sensitive data (like credentials, API keys, or PII) is inadvertently returned in response bodies, including error responses.                                      |
+| **Debug Information**                     | Check for exposed debug or stack trace info           | Ensure no debug information, stack traces, or error details are exposed to end-users, especially in production environments.                                                 |
+| **HTTP Response Cache Control**           | Ensure `Cache-Control` header is set appropriately     | Ensure that sensitive data is not cached on the client-side using the correct `Cache-Control` headers like `no-store`.                                                      |
+| **Sensitive Data in Cookies**             | Ensure no sensitive information is stored in cookies  | Make sure sensitive data such as passwords or session tokens is not stored in cookies without the `HttpOnly` and `Secure` flags set.                                        |
+
+---
+
+## **5. Authentication and Session Management**
+
+| **Field/Area**                            | **Test/Check**                                        | **Description**                                                                                                                                                           |
+|-------------------------------------------|------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Default Credentials**                   | Test for default usernames and passwords             | Ensure default usernames and passwords (e.g., "admin:admin") are changed and not accessible.                                                                            |
+| **Session Management**                    | Check for session cookie security                    | Ensure that session cookies use the `HttpOnly` and `Secure` flags and have proper expiration and regeneration policies.                                                     |
+| **Password Policy**                       | Ensure strong password policy enforcement            | Check for weak password policies that may allow users to set weak passwords (e.g., `12345`).                                                                                       |
+| **Multi-Factor Authentication (MFA)**     | Ensure MFA is implemented where possible              | Verify that multi-factor authentication is enabled for critical accounts, especially for administrators.                                                                  |
+| **Token/Session Expiration**              | Check session expiration settings                    | Ensure that session tokens expire after a reasonable time and are regenerated on login.                                                                                  |
+| **Weak Authentication**                   | Test for weak or improperly implemented auth mechanisms | Ensure authentication mechanisms (e.g., password resets, authentication tokens) are implemented securely and do not expose sensitive data in any way.                       |
+
+---
+
+## **6. Application-Level Disclosure**
+
+| **Field/Area**                            | **Test/Check**                                        | **Description**                                                                                                                                                           |
+|-------------------------------------------|------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Exposed Application Version**          | Test for exposed app versions in headers, comments, or URLs | Ensure that application version information is not disclosed in HTTP headers, source code comments, or URLs to avoid information leakage.                              |
+| **Error Messages**                        | Ensure error messages do not disclose internal data   | Test application error handling and ensure that error messages do not reveal database structure, file paths, or other internal system details.                              |
+| **Stack Trace Information**               | Check for exposed stack trace information             | Ensure that detailed stack traces, debug information, and internal paths are not displayed in error responses.                                                               |
+| **Sensitive Data in Error Pages**         | Check error pages for sensitive data leaks            | Ensure that sensitive information (e.g., internal IP addresses, database credentials, or file paths) is not exposed in error pages.                                        |
+
+---
+
+## **7. Miscellaneous Tests**
+
+| **Field/Area**                            | **Test/Check**                                        | **Description**                                                                                                                                                           |
+|-------------------------------------------|------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Sensitive Files (e.g., `.git` or `.env`)**| Check for exposed `.git`, `.env`, or other sensitive files | Ensure sensitive files (e.g., `.git`, `.env`, `.htaccess`, etc.) are not exposed on the server.                                                                           |
+| **DNS Configuration Disclosure**          | Check for DNS records revealing sensitive info        | Check if DNS records (e.g., WHOIS information) reveal sensitive information about the organization's infrastructure.                                                         |
+| **Deprecated APIs or Endpoints**          | Check for deprecated API endpoints                     | Ensure that deprecated or unused APIs do not disclose information that could be used for exploitation.                                                                    |
+| **Cloud Storage Access**                  | Test for misconfigured cloud storage access           | Verify that cloud storage services (e.g., AWS S3, Google Cloud Storage) are not misconfigured to allow unauthorized access to sensitive data.                              |
+
+---
