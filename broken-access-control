@@ -1,0 +1,83 @@
+### **🔐 Broken Access Control Vulnerability Checklist**
+
+---
+
+## **1. Authentication and Authorization**
+
+| **Field/Area**                                | **Test/Check**                                              | **Description**                                                                                                                                                           |
+|-----------------------------------------------|------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Access Control Checks**                     | Test for proper access control checks at all levels         | Ensure that proper checks are implemented to prevent unauthorized access to resources (e.g., pages, files, or APIs). Ensure these checks occur both server-side and client-side.|
+| **Role-Based Access Control (RBAC)**          | Test for RBAC implementation                               | Ensure that users can only access resources or actions according to their role. Roles should not be bypassed by manipulating parameters or URLs.                           |
+| **Least Privilege**                           | Check if users have the least privilege necessary to perform tasks | Ensure users are only granted permissions they need and no more. For example, regular users should not have admin privileges unless explicitly required.                       |
+| **Authorization in URLs**                     | Test for authorization enforcement in URL-based resources   | Ensure that simply changing URL parameters (e.g., `/user1234`) doesn’t allow unauthorized access to other user accounts or sensitive data.                              |
+| **JWT or Session-Based Authentication**       | Test for proper validation of session tokens or JWTs         | Ensure that session tokens or JWTs are validated and have appropriate expiration. Check that the token cannot be reused or bypassed by manipulating the token.               |
+| **Multi-Factor Authentication (MFA)**         | Ensure MFA is in place for sensitive actions                 | Verify that multi-factor authentication is required for critical actions (e.g., changing passwords, accessing sensitive data).                                           |
+| **Access Control on Sensitive Pages**         | Test sensitive pages for access control                    | Verify that sensitive pages (e.g., admin dashboards, user profiles) enforce access control and can’t be accessed by unauthorized users.                                      |
+
+---
+
+## **2. URL and Parameter Manipulation**
+
+| **Field/Area**                                | **Test/Check**                                              | **Description**                                                                                                                                                           |
+|-----------------------------------------------|------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **URL Parameter Tampering**                   | Test for unauthorized access by manipulating URL parameters | Check if users can access other users' data by tampering with URL parameters (e.g., `/profile?id=123` can become `/profile?id=456`).                                      |
+| **Path Traversal**                            | Test for path traversal exploits                           | Test if users can access unauthorized files by manipulating the path in the URL (e.g., `/files/../../etc/passwd`).                                                        |
+| **Unfiltered Query Strings**                  | Test for exposed query string vulnerabilities                | Ensure that query strings do not expose user-related data or sensitive parameters (e.g., `?user_id=123` should not be exposed).                                            |
+| **Role Elevation via URL**                    | Test for URL-based role escalation                           | Ensure that unauthorized users cannot access privileged functionality by manipulating the URL to elevate their role (e.g., `/admin` vs `/user`).                         |
+| **Token and Session Parameter Manipulation**   | Test for token/session hijacking or manipulation            | Ensure that access control is not bypassed by manipulating session IDs, tokens, or other authentication mechanisms in URLs or cookies.                                    |
+
+---
+
+## **3. Insecure Direct Object References (IDOR)**
+
+| **Field/Area**                                | **Test/Check**                                              | **Description**                                                                                                                                                           |
+|-----------------------------------------------|------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Object Ownership Validation**               | Test for missing access control checks for objects          | Ensure that each user can only access their own objects/data (e.g., profile, messages) and cannot access objects owned by other users.                                    |
+| **Object Access Control on APIs**             | Test for proper API object access control                   | Ensure that APIs return data only for authorized users and do not expose data for unauthorized users. Ensure objects are validated against the logged-in user’s permissions.|
+| **Multiple Object Access Control**            | Test if users can access multiple objects via API           | Ensure that users cannot access multiple objects they do not own by modifying the URL, parameters, or API requests.                                                        |
+| **Horizontal Access Control**                 | Test for horizontal privilege escalation                     | Ensure that a user cannot access another user’s data through direct object references (e.g., viewing another user’s profile).                                               |
+
+---
+
+## **4. Privilege Escalation and Authorization Checks**
+
+| **Field/Area**                                | **Test/Check**                                              | **Description**                                                                                                                                                           |
+|-----------------------------------------------|------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Privilege Escalation**                      | Test for privilege escalation via input manipulation         | Check if users can escalate their privileges by manipulating user roles or access control flags (e.g., by altering HTTP headers, cookies, or session tokens).              |
+| **Authorization Bypass**                      | Test for bypassing authorization logic                      | Check for weaknesses in authorization logic that may allow attackers to bypass access control mechanisms (e.g., using special characters or encoded payloads).              |
+| **Admin Functionality Access**                | Test if unauthorized users can access admin functionality   | Ensure regular users cannot access admin panels or perform administrative tasks by manipulating roles or request parameters.                                              |
+| **Access Control in API Endpoints**           | Ensure proper authorization is enforced in API calls         | Check that API endpoints enforce authorization checks and do not allow unauthorized users to perform admin-level actions.                                                 |
+
+---
+
+## **5. Session Management**
+
+| **Field/Area**                                | **Test/Check**                                              | **Description**                                                                                                                                                           |
+|-----------------------------------------------|------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Session Fixation**                          | Test for session fixation attacks                           | Ensure that session IDs are changed after login and cannot be reused or fixed across sessions.                                                                            |
+| **Session Timeout**                           | Test for session timeout and expiration                    | Ensure that sessions are properly expired after a set period of inactivity and that expired sessions cannot be reused.                                                     |
+| **Access Control in Sessions**                | Test if session tokens can be hijacked or manipulated        | Ensure that session tokens are unique, unpredictable, and not easily guessable. Ensure that tokens cannot be tampered with to impersonate other users.                       |
+| **Token Leaks in Cookies**                    | Test for session or token leakage in cookies                | Ensure that session cookies use the `Secure` and `HttpOnly` flags and are protected against cross-site scripting (XSS) and session hijacking.                               |
+| **Session Management in Web Applications**    | Test for session management flaws in web applications        | Check if session management mechanisms are properly implemented to prevent session hijacking and unauthorized access.                                                      |
+
+---
+
+## **6. Access Control in User Roles and Permissions**
+
+| **Field/Area**                                | **Test/Check**                                              | **Description**                                                                                                                                                           |
+|-----------------------------------------------|------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Role Assignment Control**                   | Test if users can change their role                         | Ensure users cannot change their roles or privileges (e.g., by modifying request parameters, headers, or cookies).                                                         |
+| **Permission Overriding**                     | Test if users can override permissions                      | Ensure that users cannot override permissions assigned to them, such as accessing admin pages or elevated functions.                                                       |
+| **Insecure Role Management**                  | Test for insecure role management                           | Ensure that roles are securely defined and users cannot gain unauthorized access to privileged resources (e.g., admins, super users).                                      |
+| **Access Control in Multi-tenant Systems**    | Test if users can access resources from other tenants       | In multi-tenant applications, ensure that users cannot access data belonging to other tenants.                                                                             |
+
+---
+
+## **7. Miscellaneous Tests**
+
+| **Field/Area**                                | **Test/Check**                                              | **Description**                                                                                                                                                           |
+|-----------------------------------------------|------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Access Control on File Downloads**          | Test if files are properly protected                        | Ensure that sensitive files (e.g., documents, reports) are not accessible by unauthorized users, either through direct download links or API calls.                       |
+| **API Key Management**                        | Test for unauthorized access to API keys                   | Ensure that API keys are not exposed to unauthorized users, and access to API endpoints is properly controlled using authentication and authorization.                     |
+| **Exposed Sensitive Data in Debug Mode**      | Test if sensitive data is exposed during debugging           | Ensure that no sensitive data (e.g., database credentials, file paths) is leaked during debugging or error handling.                                                        |
+
