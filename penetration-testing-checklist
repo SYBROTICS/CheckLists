@@ -1,0 +1,162 @@
+# ✅ Complete Penetration Testing Checklist (Full Process)
+
+---
+
+## 1. **Pre-Engagement Activities**
+
+### 1.1 Scope Definition
+- [ ] Identify systems/assets to be tested (IP ranges, web apps, APIs, mobile apps, etc.)
+- [ ] Define the type of test:
+  - [ ] Black Box (no knowledge)
+  - [ ] Gray Box (partial knowledge)
+  - [ ] White Box (full knowledge, credentials)
+- [ ] Determine testing boundaries (what is **in-scope** and **out-of-scope**)
+
+### 1.2 Rules of Engagement
+- [ ] Signed authorization documents ("Permission to Test")
+- [ ] Define permitted testing hours
+- [ ] Define "safe" vs "destructive" testing
+- [ ] Emergency contacts and escalation procedures defined
+- [ ] Data handling rules (for sensitive data found)
+
+### 1.3 Logistics
+- [ ] Set up internal communication (Slack, email, Signal)
+- [ ] Prepare testing environment (Kali Linux, Parrot, custom toolkits)
+- [ ] Define deliverables (reports, raw data, recommendations)
+
+---
+
+## 2. **Information Gathering (Reconnaissance)**
+
+### 2.1 Passive Recon
+- [ ] WHOIS records lookup
+- [ ] DNS Enumeration (`dig`, `dnsenum`, `dnsrecon`)
+- [ ] Search Engines (Google Hacking, Shodan, Censys)
+- [ ] Public Breaches/Leaks checking (HaveIBeenPwned, Dehashed)
+- [ ] Social media mining (LinkedIn, Twitter)
+
+### 2.2 Active Recon
+- [ ] Port Scanning (`nmap`, `masscan`)
+- [ ] Service Identification (banner grabbing)
+- [ ] OS Fingerprinting
+- [ ] Application fingerprinting (CMS, Frameworks)
+- [ ] Subdomain enumeration (`Sublist3r`, `Amass`, `assetfinder`)
+- [ ] Directory/File enumeration (`dirbuster`, `gobuster`, `feroxbuster`)
+
+---
+
+## 3. **Threat Modeling**
+
+- [ ] Identify potential attack paths
+- [ ] Map relationships between systems (trust levels, data flows)
+- [ ] Identify critical assets (e.g., sensitive databases, admin portals)
+- [ ] Assess impact vs likelihood of different threats
+
+---
+
+## 4. **Vulnerability Analysis**
+
+### 4.1 Automated Scanning
+- [ ] Network vulnerability scan (`Nessus`, `OpenVAS`, `Qualys`)
+- [ ] Web application scan (`OWASP ZAP`, `Burp Suite`, `Netsparker`)
+- [ ] SSL/TLS testing (`testssl.sh`, `ssllabs.com`)
+- [ ] Source code review (if white-box)
+- [ ] Mobile app vulnerability analysis (for mobile apps)
+
+### 4.2 Manual Analysis
+- [ ] Look for business logic flaws
+- [ ] Check for common misconfigurations
+- [ ] Manually verify scanner findings
+- [ ] Search for hidden endpoints, API endpoints
+
+---
+
+## 5. **Exploitation Phase**
+
+### 5.1 External Network Exploitation
+- [ ] Exploit public-facing services (RCE, SSRF, IDOR, etc.)
+- [ ] Password attacks (brute-forcing, credential stuffing)
+- [ ] Exploit misconfigurations (open ports, weak services)
+
+### 5.2 Internal Network Exploitation *(if internal access)*
+- [ ] Exploit unpatched vulnerabilities (EternalBlue, PrintNightmare, etc.)
+- [ ] Exploit default passwords and weak passwords
+- [ ] Pivoting through the network
+- [ ] Man-in-the-Middle attacks (ARP spoofing, DNS poisoning)
+
+### 5.3 Web Application Exploitation
+- [ ] SQL Injection
+- [ ] Cross-Site Scripting (XSS)
+- [ ] File upload vulnerabilities
+- [ ] Insecure deserialization
+- [ ] Broken Access Control
+- [ ] Directory Traversal
+- [ ] Web Shell Uploads
+
+### 5.4 Wireless Network Exploitation (if applicable)
+- [ ] Wi-Fi sniffing (WPA2 handshakes, evil twin attacks)
+- [ ] Exploit insecure wireless configurations
+
+---
+
+## 6. **Post-Exploitation**
+
+- [ ] Maintain access (implant backdoors if allowed)
+- [ ] Privilege escalation:
+  - [ ] Windows privilege escalation (token impersonation, weak services)
+  - [ ] Linux privilege escalation (SUID binaries, cron jobs)
+- [ ] Internal network exploration (pivoting and tunneling)
+- [ ] Data exfiltration simulation (capturing sensitive files, database dumps)
+- [ ] Password hash dumping (LSASS memory, SAM file)
+- [ ] Credential reuse attacks
+- [ ] Identify "crown jewels" (critical data)
+
+---
+
+## 7. **Reporting**
+
+### 7.1 Technical Report
+- [ ] Executive Summary (for non-technical stakeholders)
+- [ ] Methodology used
+- [ ] Detailed vulnerability findings
+  - [ ] Vulnerability name
+  - [ ] Risk/Impact
+  - [ ] Evidence (screenshots, proof-of-concept)
+  - [ ] Steps to reproduce
+  - [ ] Mitigation/Remediation advice
+- [ ] Attack paths taken
+- [ ] Pivoting and lateral movement paths (if any)
+
+### 7.2 Risk Scoring
+- [ ] Use CVSS (Common Vulnerability Scoring System)
+- [ ] Custom organization-specific risk metrics (if needed)
+
+---
+
+## 8. **Post-Engagement Activities**
+
+- [ ] Present report to stakeholders
+- [ ] Walkthrough of major vulnerabilities and risks
+- [ ] Remediation consultancy (assist fixing findings)
+- [ ] Retesting after fixes are applied
+- [ ] Lessons learned meeting (improvements for next pentests)
+
+---
+
+# 🛡️ Pentesting Mindset Tips:
+- Always think like an attacker: "How can I break this?"  
+- Always think like a defender: "How could I have prevented this?"
+- Document **everything** you do (even failed attempts can reveal risk!)
+- Focus on **impact**, not just "vulnerabilities."
+
+---
+
+# Bonus: 🔥 Tools Categorized
+
+| Phase | Tools |
+|:-----|:-----|
+| Reconnaissance | Nmap, Masscan, Sublist3r, theHarvester |
+| Vulnerability Scanning | Nessus, OpenVAS, Burp Suite, Nikto |
+| Exploitation | Metasploit, SQLmap, Hydra, CrackMapExec |
+| Post-Exploitation | Mimikatz, BloodHound, Empire, Covenant |
+
