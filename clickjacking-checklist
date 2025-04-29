@@ -1,0 +1,110 @@
+## ✅ Clickjacking Vulnerability Testing Checklist
+
+---
+
+### 🔍 **1. Reconnaissance & Initial Assessment**
+
+| Step | Task Description | Tools/Methods |
+|------|------------------|---------------|
+| 1.1  | Identify URLs of critical functionality (login, transactions, settings, etc.) | Manual browsing, Burp Suite spider, content discovery |
+| 1.2  | Enumerate HTTP response headers for `X-Frame-Options` and `Content-Security-Policy (CSP)` | Burp Suite, curl, browser dev tools |
+| 1.3  | Check for different behaviors on sensitive pages vs public pages | Inspect each response for frame protections |
+
+---
+
+### 🧪 **2. Manual Clickjacking Testing**
+
+| Step | Task | Action/Example |
+|------|------|----------------|
+| 2.1  | Create a basic HTML page to frame the target | `<iframe src="https://target.com" width="800" height="600"></iframe>` |
+| 2.2  | Observe whether the framed site loads | If it loads, protection is likely missing |
+| 2.3  | Add styling to hide iframe edges (simulate clickjacking attack) | Use CSS: `opacity: 0.1; position: absolute;` |
+| 2.4  | Align iframe over fake buttons or fake UI | Create dummy buttons beneath iframe |
+| 2.5  | Test click interactions on framed content | Try to click buttons or links in the iframe |
+
+---
+
+### 🧠 **3. Advanced Testing Techniques**
+
+| Step | Technique | Description |
+|------|-----------|-------------|
+| 3.1  | Test with different domains and subdomains | Host iframe attack page on a different origin |
+| 3.2  | Use multiple iframe layers with opacity and z-index tricks | Simulate invisible button tricks |
+| 3.3  | Test partial embedding (frame specific endpoints like logout, settings) | Isolate endpoints individually |
+| 3.4  | Test with social engineering bait UI | Overlay iframe over enticing buttons (e.g., “Play”, “Next”) |
+
+---
+
+### 🔎 **4. Header Validation**
+
+| Step | Header | Expected Value |
+|------|--------|----------------|
+| 4.1  | `X-Frame-Options` | `DENY` or `SAMEORIGIN` |
+| 4.2  | `Content-Security-Policy` (frame-ancestors directive) | `frame-ancestors 'none';` or limited to specific origins |
+| 4.3  | Check if CSP overrides or conflicts with XFO | CSP takes precedence over XFO if both exist |
+| 4.4  | Use curl to check headers | `curl -I https://target.com/page` |
+| 4.5  | Use Burp or ZAP to intercept and analyze responses | Look at raw headers |
+
+---
+
+### 🛠️ **5. Automated Scanning**
+
+| Step | Tool | Purpose |
+|------|------|---------|
+| 5.1  | Burp Suite (Pro) | Active scanner for clickjacking |
+| 5.2  | OWASP ZAP | Passive scan for missing XFO or CSP |
+| 5.3  | Nmap + http-headers script | `nmap --script http-headers -p 80,443 <host>` |
+| 5.4  | Nikto | Detect missing security headers |
+
+---
+
+### ✅ **6. Validation & False Positive Check**
+
+| Step | Task | Action |
+|------|------|--------|
+| 6.1  | Try iframe embedding from different domain | Confirm browser accepts iframe |
+| 6.2  | Try iframe embedding with spoofed headers | Bypass some client-side protections |
+| 6.3  | Confirm server responses are consistent (no CSP randomly applied) | Use proxy to monitor all page loads |
+| 6.4  | Ensure behavior is repeatable and not due to caching | Use Incognito/Private mode, clear cache |
+
+---
+
+### 🧾 **7. Evidence Collection**
+
+| Step | Type | Description |
+|------|------|-------------|
+| 7.1  | Screenshot of framed page successfully loading | Full browser window or dev tools |
+| 7.2  | HTTP response headers (missing XFO/CSP) | Raw headers from Burp or curl |
+| 7.3  | POC HTML file used to test clickjacking | Save and include in report |
+| 7.4  | Video proof (if interaction is needed) | Optional, for more complex cases |
+
+---
+
+### 🛡️ **8. Reporting & Remediation**
+
+| Section | Content |
+|---------|---------|
+| **Title** | Clickjacking Vulnerability on `<endpoint>` |
+| **Description** | The page does not implement frame busting headers, allowing it to be embedded in an external site, potentially tricking users into unintended actions. |
+| **Impact** | UI redress attack may lead to privilege escalation, CSRF, or financial loss depending on framed functionality. |
+| **Risk Level** | Medium to High (based on functionality affected) |
+| **Steps to Reproduce** | Include HTML PoC, headers checked, behavior observed |
+| **Evidence** | Screenshots, POC code, headers |
+| **Remediation Recommendations** | <ul><li>Add `X-Frame-Options: DENY` or `SAMEORIGIN` header</li><li>Or configure CSP with `frame-ancestors 'none';`</li><li>Test frame behavior after applying headers</li></ul> |
+| **CWE & OWASP** | CWE-1021 (Clickjacking), OWASP A05:2021 (Security Misconfiguration) |
+
+---
+
+### 🧰 **Clickjacking Testing Toolkit**
+
+- **Manual Tools:**
+  - HTML iframe PoC
+  - Burp Suite / OWASP ZAP
+  - Browser Dev Tools (Chrome/Firefox)
+  - curl / httpie for header checks
+
+- **Automation Tools:**
+  - Nikto
+  - Nmap (`http-headers`)
+  - Burp Scanner
+  - ZAP Passive Scanner
