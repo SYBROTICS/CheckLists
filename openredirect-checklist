@@ -1,0 +1,128 @@
+## ✅ Open Redirect Vulnerability Testing Checklist
+
+---
+
+### 🔍 **1. Reconnaissance & Input Discovery**
+
+| Step | Task | Tools/Methods |
+|------|------|----------------|
+| 1.1  | Identify URL parameters that handle redirection | Look for parameters like `url=`, `redirect=`, `next=`, `target=`, `dest=`, `r=`, `goto=`, etc. |
+| 1.2  | Use Burp Suite or ZAP to capture all requests | Proxy tools + spidering |
+| 1.3  | Use search operators to find redirection patterns in URLs | Google Dork: `inurl:redirect=` |
+| 1.4  | Look for redirection in login/logout/SSO/confirmation pages | Focus on endpoints that redirect after user actions |
+
+---
+
+### 🧪 **2. Manual Testing for Open Redirects**
+
+| Step | Payload Type | Example Payload |
+|------|--------------|------------------|
+| 2.1  | External redirect payload | `?redirect=https://evil.com` |
+| 2.2  | Protocol-relative redirect | `?redirect=//evil.com` |
+| 2.3  | URL-encoded payload | `?redirect=%68%74%74%70%3a%2f%2fevil.com` |
+| 2.4  | Double encoding | `?redirect=%252f%252fevil.com` |
+| 2.5  | Open redirect with subdomains | `?redirect=https://evil.com@trusted.com` |
+| 2.6  | JavaScript-based redirect testing (client-side) | `<script>window.location="evil.com"</script>` (for JS-heavy apps) |
+| 2.7  | Redirect using short URL | `?redirect=https://bit.ly/evil` |
+
+---
+
+### 🛠️ **3. Automated Testing Tools**
+
+| Step | Tool | Purpose |
+|------|------|---------|
+| 3.1  | Burp Suite Active Scan | Detects unvalidated redirects |
+| 3.2  | OWASP ZAP Passive/Active Scan | Flags redirect params |
+| 3.3  | Nikto | Basic checks for insecure redirections |
+| 3.4  | ParamSpider / Arjun | Parameter discovery for deeper testing |
+| 3.5  | LinkFinder | JS parser to extract hidden redirect endpoints |
+
+---
+
+### 🧠 **4. Bypass Techniques & Edge Cases**
+
+| Step | Bypass Type | Payload |
+|------|-------------|---------|
+| 4.1  | Obfuscate domain using Unicode | `https://％65vil.com` |
+| 4.2  | Use whitespaces or null characters | `https://evil.com%00.trusted.com` |
+| 4.3  | Redirect via JavaScript fragment | `?redirect=/#//evil.com` |
+| 4.4  | Use path-based bypass | `?next=//evil.com/%2f..` |
+| 4.5  | Test combinations (e.g., malformed, nested redirects) | `?redirect=http://evil.com%2F..%2Ftrusted.com` |
+
+---
+
+### 🔎 **5. Validation and Evidence Collection**
+
+| Step | Action | Tools |
+|------|--------|-------|
+| 5.1  | Observe HTTP 3xx response with `Location` header pointing to untrusted domain | Burp Repeater / curl |
+| 5.2  | Record raw HTTP request/response | Burp Suite |
+| 5.3  | Take screenshots of redirection in action | Browser tools |
+| 5.4  | Save working PoC payloads | HTML/JS code or URL list |
+
+---
+
+### 🧾 **6. Proof-of-Concept (PoC)**
+
+| Format | Example |
+|--------|---------|
+| URL | `https://trusted.com/redirect?url=https://evil.com` |
+| HTML | `<a href="https://trusted.com/redirect?url=https://evil.com">Click here</a>` |
+| JS | `window.location.href = "https://trusted.com/redirect?url=https://evil.com"` |
+| Form | `<form action="https://trusted.com/redirect" method="GET"><input name="url" value="https://evil.com"><input type="submit"></form>` |
+
+---
+
+### ✅ **7. Risk Analysis & Severity Determination**
+
+| Factor | Severity Notes |
+|--------|----------------|
+| Redirect to phishing/malware site | High |
+| Redirect from login, email, or financial actions | High |
+| Redirect only to external subdomains or validated list | Low to Medium |
+| Redirect used in SSO flows | High |
+| Redirect not affecting user perception or interaction | Informational |
+
+---
+
+### 🛡️ **8. Mitigation & Recommendations**
+
+| Step | Fix Type | Description |
+|------|----------|-------------|
+| 8.1  | Input validation | Whitelist allowed domains for redirection |
+| 8.2  | Do not accept full URLs in parameters | Use only internal paths like `/dashboard` |
+| 8.3  | Use server-side mapping (ID to destination) | e.g., `?redirect_id=3` → maps to predefined internal URL |
+| 8.4  | Add warnings before redirecting to external sites | "You are leaving this site..." |
+| 8.5  | Set CSP and Referrer-Policy headers to reduce impact | Helps limit information leakage during redirects |
+
+---
+
+### 🧰 **Open Redirect Testing Toolkit**
+
+- **Manual Tools:**  
+  - Burp Suite (Repeater, Scanner)  
+  - curl, httpie  
+  - Custom HTML pages
+
+- **Automated Tools:**  
+  - OWASP ZAP  
+  - Nikto  
+  - ParamSpider  
+  - Arjun  
+  - LinkFinder (for JavaScript parsing)
+
+---
+
+### 📑 **Reporting Template Snippet**
+
+```
+**Title:** Open Redirect on /redirect
+
+**Description:** The application fails to validate the user-supplied redirect URL in the `url` parameter, allowing redirection to untrusted domains.
+
+**Impact:** Attackers may exploit this to redirect users to phishing or malicious websites.
+
+**PoC URL:** https://example.com/redirect?url=https://evil.com
+
+**Remediation:** Implement strict URL whitelisting or relative-path redirection only.
+```
